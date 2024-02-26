@@ -12,7 +12,7 @@ from api.user import user_api # Blueprint import api definition
 from api.job import job_api
 # database migrations
 from model.users import initUsers
-
+from api.salaries import salaries_api
 from model.jobs import initJobs
 from model.jobuser import initJobsUsers
 
@@ -29,6 +29,7 @@ app.register_blueprint(user_api) # register api routes
 app.register_blueprint(job_api)
 app.register_blueprint(jobuser_api)
 app.register_blueprint(app_projects) # register app pages
+app.register_blueprint(salaries_api)
 
 '''
 with app.app_context():
