@@ -46,17 +46,14 @@ from urllib import parse
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
-# Create a Blueprint for the salaries API
 salaries_api = Blueprint('salaries_api', __name__, url_prefix='/api/salaries')
 api = Api(salaries_api)
 
-# Define a class to manage salaries-related functionality
 class JobUserAPI:        
     class _Salaries(Resource):
         def get(self):
             salaries = Job.query.with_entities(Job.pay).order_by(Job.pay).all()  
             if salaries:
-                # Serialize salary data into JSON format
                 json_ready = [salary.serialize() for salary in salaries]
                 return jsonify(json_ready)
             else:
@@ -67,7 +64,7 @@ class JobUserAPI:
     def iterate_users(self):
         users = User.query.all()
         for user in users:
-            print(user.username)  # Highlighted call to the iterate_users method
+            print(user.username) 
             
 def select_users_by_status(self, status):
     users = User.query.filter_by(status=status).all()
@@ -78,7 +75,6 @@ def select_users_by_status(self, status):
             "pay": user.pay,
             "title": user.title,
             "field": user.field,
-            # Add more attributes here as needed
         }
         serialized_users.append(serialized_user)
     return serialized_users
@@ -87,7 +83,7 @@ def select_users_by_status(self, status):
 
 job_user_api = JobUserAPI()
 job_user_api.iterate_users()  
-employer_users = job_user_api.select_users_by_status('Employer')  # Call to the select_users_by_status method
+employer_users = job_user_api.select_users_by_status('Employer') 
 print(employer_users)  
 
 app.register_blueprint(salaries_api)
