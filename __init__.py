@@ -11,6 +11,7 @@ import os
 from flask_cors import CORS
 from flask import request
 from flask_mail import Mail
+
 """
 These object can be used throughout project.
 1.) Objects from this file can be included in many blueprints

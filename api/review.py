@@ -12,14 +12,7 @@ review_api = Blueprint('review_api', __name__, url_prefix='/api/review')
 # API docs https://flask-restful.readthedocs.io/en/latest/api.html
 api = Api(review_api)
 
-@app.before_request
-def before_request():
-    # Check if the request came from a specific origin
-    allowed_origin = request.headers.get('Origin')
-    if allowed_origin in ['http://127.0.0.1:4100/joblyFrontend/', 'http://localhost:4100/joblyFrontend/', 'https://aidanlau10.github.io/joblyFrontend/', 
-                          'https://aidanlau10.github.io/', 'http://127.0.0.1:4100/joblyFrontend/jobs/', 'http://localhost:4100/joblyFrontend/jobs/',
-                          'https://aidanlau10.github.io/joblyFrontend/jobs/', 'http://127.0.0.1:4100', 'http://127.0.0.1:4100/joblyFrontend/review/']:
-        cors._origins = allowed_origin
+
 # app = Flask(__name__)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reviews.db'
 # db = SQLAlchemy(app)
@@ -36,10 +29,10 @@ class ReviewAPI:
             # validate name
             rating = body.get('rating')
             comment = body.get('comment')
-            userid = body.get("userid")
+            # userid = body.get("userid")
             
             ''' #1: Key code block, setup USER OBJECT '''
-            review = Review(userid=userid,
+            review = Review(
                         rating=rating,
                         comment=comment
                         )

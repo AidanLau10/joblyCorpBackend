@@ -20,11 +20,11 @@ from api.job import job_api
 # database migrations
 from model.users import initUsers
 from model.reviews import initReviews
-from model.applications import initApplications
-from model.messages import initMessages
 from model.jobs import initJobs
 from model.jobuser import initJobsUsers
-
+from api.message import message_api
+from api.jobuser import jobuser_api
+from api.review import review_api
 # setup App pages
 from projects.projects import app_projects # Blueprint directory import projects definition
 
@@ -38,6 +38,7 @@ app.register_blueprint(job_api)
 app.register_blueprint(jobuser_api)
 app.register_blueprint(app_projects) # register app pages
 app.register_blueprint(review_api)
+app.register_blueprint(survey_api)
 
 '''
 with app.app_context():
@@ -67,9 +68,9 @@ def table():
 def before_request():
     # Check if the request came from a specific origin
     allowed_origin = request.headers.get('Origin')
-    if allowed_origin in ['http://127.0.0.1:4100/joblyFrontend/', 'http://localhost:4100/joblyFrontend/', 
-                          'http://127.0.0.1:4100/joblyFrontend/jobs/', 'http://localhost:4100/joblyFrontend/jobs/',
-                          'http://127.0.0.1:4100']:
+    if allowed_origin in ['http://127.0.0.1:4100/joblyFrontend/', 'http://localhost:4100/joblyFrontend/', 'https://aidanlau10.github.io/joblyFrontend/', 
+                          'https://aidanlau10.github.io/', 'http://127.0.0.1:4100/joblyFrontend/jobs/', 'http://localhost:4100/joblyFrontend/jobs/',
+                          'https://aidanlau10.github.io/joblyFrontend/jobs/', 'http://127.0.0.1:4100']:
         cors._origins = allowed_origin
 
         
@@ -83,12 +84,12 @@ custom_cli = AppGroup('custom', help='Custom commands')
 
 @custom_cli.command('generate_data')
 def generate_data():
+    print('In the generate data')
     initUsers()
-    initMessages()
     initReviews()
     initJobs()
     initJobsUsers()
-    initApplications()
+
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)
