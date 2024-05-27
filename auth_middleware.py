@@ -1,3 +1,7 @@
+'''
+auth_middleware.py provided by teacher for using JWT tokens to authenticate users.
+Modified it to check for the status of a user as either employer or freelancer
+'''
 from functools import wraps
 import jwt
 from flask import request, abort
@@ -25,10 +29,10 @@ def token_required(status=None):
                         "error": "Unauthorized"
                     }, 401
 
-                # Check if roles are provided and user has the required role
+                # check if status is provided and if user has the required status passed as an argument
                 if status and current_user.status not in status:
                     return {
-                        "message": "Insufficient permissions. Required roles: {}".format(status),
+                        "message": "Insufficient permissions. Required status: {}".format(status),
                         "data": None,
                         "error": "Forbidden"
                     }, 403

@@ -1,151 +1,122 @@
 import json, jwt
 from flask import Blueprint, request, jsonify, current_app, Response
-from flask_restful import Api, Resource # used for REST API building
+from flask_restful import Api, Resource
 from datetime import datetime
 from auth_middleware import token_required
 from model.users import User
 import random
 from __init__ import app, db, cors
 import flask
+from model.applications import Application
 from model.jobs import Job
 from model.jobuser import JobUser
 from urllib import parse
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
+
 jobuser_api = Blueprint('jobuser_api', __name__,
                    url_prefix='/api/jobuser')
 
-# API docs https://flask-restful.readthedocs.io/en/latest/api.html
 api = Api(jobuser_api)
 
+# procedure that returns the jobs that a user applied to if they're a freelancer 
+# or the jobs that an user posted if they're an employer
+def get_user_jobs(userid):
+    # query the user table for the first user that matches the userid passed in the query parameters of the request
+    user = User.query.filter_by(id=request.args.get("userid")).first()
+
+    # returns error if user isn't found
+    if user is None:
+        return jsonify({"error": "User not found"})
+    
+    '''
+    1. create a list using the set operation of all the job ids that match the jobusers queried in the databasee with matching userids 
+    2. iterate over each job id in the set created in step 1 and query the job database for the corresponding job and add it to a list
+    3. use the read method defined in the job class to return the details of each job in step 2 in readable form
+    '''
+    if user.status == "Freelancer":
+        jobs_id = set([jobuser.jobid for jobuser in JobUser.query.filter_by(userid = userid).all()])
+        jobs = [Job.query.filter_by(id = job).first() for job in jobs_id]
+        return jsonify([job.read() for job in jobs])
+    elif user.status == "Employer": # if user.status is employer
+        '''
+        if the user is an employer, query the job database for all jobs with the jobpostee that matches the userid in the query parameter of the request
+        apply the read method defined in the job class to return the details of each job in the query above
+        '''
+        jobpostee = Job.query.filter_by(jobpostee=request.args.get("userid")).all()
+        # get employer id, read all jobs they posted. posted from jobs
+        return jsonify([job.read() for job in jobpostee])
 
 
 class JobUserAPI:        
-    class _CRUD(Resource):  # User API operation for Create, Read.  THe Update, Delete methods need to be implemeented
-
-        def post(self): # Create method
-            ''' Read data for json body '''
-            body = request.get_json()
-            
-            ''' Avoid garbage in, error checking '''
-            # validate name
-            jobid = body.get('jobid')
-            userid = body.get('userid')
-    
-            ''' #1: Key code block, setup USER OBJECT '''
-            juo = JobUser(jobid=jobid,
-                          userid=userid)
-
-
-            ''' #2: Key Code block to add user to database '''
-            # create user in database
-            jobuser = juo.create()
-            # success returns json of user
-            if jobuser:
-                return jsonify(juo.read())
-
-            # failure returns error
-            return {'message': f'Processed {juo}, either a format error or User ID {userid} is duplicate'}, 400
-
-   
-        def get(self): # Read Method
-            print(request.url)
-            frontendrequest = request.url
-            parsed_url = urlparse(frontendrequest)
-            print("parsed_url")
-            print(parsed_url)
-            query_params = parse_qs(parsed_url.query)
-            if 'id' in query_params:
-                query_id = query_params['id'][0]
-                print('query_id')
-                print(query_id)
-                job = Job.query.filter_by(id=query_id).first()
-                if job:
-                    return job.read()
-                else:
-                    return {'message': 'Job not found'}, 404
-            else:
-                jobs = Job.query.all()    # read/extract all users from database
-                json_ready = [job.read() for job in jobs]  # prepare output in json
-                return jsonify(json_ready) # jsonify creates Flask response object, more specific to APIs than json.dumps
-
-                    
-        @token_required("Employer")
-        def delete(self, _): # Delete Method
-            body = request.get_json()
-            uid = body.get('uid')
-            user = User.query.filter_by(_uid=uid).first()
-            if user is None:
-                return {'message': f'User {uid} not found'}, 404
-            json = user.read()
-            user.delete() 
-            # 204 is the status code for delete with no json response
-            return f"Deleted user: {json}", 204 # use 200 to test with Postman
-            
-    
     class _ApplyCount(Resource):
-        def get(self): # Read Method
-            print(request.url)
+        # get method that will return the number of users that applied to a specific job
+        def get(self):
+            # get the query parameters of the request
             frontendrequest = request.url
             parsed_url = urlparse(frontendrequest)
-            print("apply count")
-            print(parsed_url)
             query_params = parse_qs(parsed_url.query)
+            '''
+            if a job id is in the query parameters, count how how many jobuser objects match the jobid because each jobuser object is the amount of 
+            times somebody has applied to the specific job
+            '''
             if 'id' in query_params:
                 query_id = query_params['id'][0]
-                print('apply count')
-                print(query_id)
                 count = JobUser.query.filter_by(jobid=query_id).count()
-                print(count)
                 if count:
                     return jsonify(count)
                 else:
                     return jsonify('0')
-            else:
-                jobs = Job.query.all()    # read/extract all users from database
-                json_ready = [job.read() for job in jobs]  # prepare output in json
-                return jsonify(json_ready)
+    
     class _Profile(Resource):
+        # get method that returns the jobs that a user applied to if they're a freelancer 
+        # or the jobs that an user posted if they're an employer
         def get(self):
-            user = User.query.filter_by(id=request.args.get("userid")).first()
-
-            if user is None:
-                return jsonify({"error": "User not found"})
-                
-            if user.status == "Freelancer":
-                jobs_id = set([jobuser.jobid for jobuser in db.session.query(JobUser).filter(JobUser.userid == request.args.get("userid")).all()])
-                jobs = [db.session.query(Job).filter(Job.id == job).first() for job in jobs_id]
-                return jsonify([job.read() for job in jobs])
-            elif user.status == "Employer": # if user.status is employer
-                jobpostee = Job.query.filter_by(_jobpostee=request.args.get("userid")).all()
-                # get employer id, read all jobs they posted. posted from jobs
-                return jsonify([job.read() for job in jobpostee])
-            
+            # gets the userid in the query parameters of the request and passes it into the procedure defined above
+            userid = request.args.get("userid")
+            return get_user_jobs(userid)
+        
     class _whoApplied(Resource):
+        # get method that will return all the users that applied to a job
         def get(self):
-            users_id = set([jobuser.userid for jobuser in db.session.query(JobUser).filter(JobUser.jobid == request.args.get("id")).all()])
-            users = [db.session.query(User).filter(User.id == user).first() for user in users_id]
-            return jsonify([user.read() for user in users])
+            '''
+            1. create a list using the set operation of all the user ids that match the applications queried in the databasee with matching job ids
+            2. iterate over each user id in the set created in step 1 and query the user database for the corresponding user and add it to a list
+            3. use the read method defined in the user class to return the details of each user in step 2 in readable form
+            '''
+            users_id = set([application.userid for application in Application.query.filter_by(jobid = request.args.get("id")).all()])
+            users = [User.query.filter_by(id = user).first() for user in users_id]
+            user_application_list = []
+            for user in users:
+                application = Application.query.filter_by(jobid= request.args.get("id"), userid=user.id).first()
+                user_application_list.append( 
+                        {'user': user.read(),
+                        'application': application.read()})
+            
+            
+            return user_application_list
+            
     
     class _userStatus(Resource):
+        # get method that will return the status and nam e of a user
         def get(self):
+            # query the user database for the first user that matches the userid
             user = User.query.filter_by(id=request.args.get("userid")).first()
-
+            # returns error if user isnt found
             if user is None:
                 return jsonify({"error": "User not found"})
-                
+            
             if user.status == "Freelancer":
                 return {'status': 'Freelancer',
                     'name': f'{user._name}'}
              
-            elif user.status == "Employer": # if user.status is employer
+            elif user.status == "Employer":
                 return {'status': 'Employer',
                     'name': f'{user._name}'}
     
 
             
-    # building RESTapi endpoint
-    api.add_resource(_CRUD, '/')
+    # adds endpoints
     api.add_resource(_ApplyCount, '/applycount')
     api.add_resource(_Profile, '/profile')
     api.add_resource(_whoApplied, '/whoapplied')

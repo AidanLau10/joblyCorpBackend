@@ -1,3 +1,7 @@
+'''
+main.py code provided by teacher
+'''
+
 from flask import render_template,request  # import render_template from "public" flask libraries
 from flask.cli import AppGroup
 
@@ -8,18 +12,19 @@ from __init__ import app, db, cors  # Definitions initialization
 
 # setup APIs
 from api.user import user_api # Blueprint import api definition
-
-from api.job import job_api
-# database migrations
-from model.users import initUsers
-from model.reviews import initReviews
-
-from model.messages import initMessages
-from model.jobs import initJobs
-from model.jobuser import initJobsUsers
 from api.message import message_api
 from api.jobuser import jobuser_api
 from api.review import review_api
+from api.job import job_api
+
+# database migrations
+from model.users import initUsers
+from model.reviews import initReviews
+from model.applications import initApplications
+from model.messages import initMessages
+from model.jobs import initJobs
+from model.jobuser import initJobsUsers
+
 # setup App pages
 from projects.projects import app_projects # Blueprint directory import projects definition
 
@@ -62,9 +67,9 @@ def table():
 def before_request():
     # Check if the request came from a specific origin
     allowed_origin = request.headers.get('Origin')
-    if allowed_origin in ['http://127.0.0.1:4100/joblyFrontend/', 'http://localhost:4100/joblyFrontend/', 'https://aidanlau10.github.io/joblyFrontend/', 
-                          'https://aidanlau10.github.io/', 'http://127.0.0.1:4100/joblyFrontend/jobs/', 'http://localhost:4100/joblyFrontend/jobs/',
-                          'https://aidanlau10.github.io/joblyFrontend/jobs/', 'http://127.0.0.1:4100']:
+    if allowed_origin in ['http://127.0.0.1:4100/joblyFrontend/', 'http://localhost:4100/joblyFrontend/', 
+                          'http://127.0.0.1:4100/joblyFrontend/jobs/', 'http://localhost:4100/joblyFrontend/jobs/',
+                          'http://127.0.0.1:4100']:
         cors._origins = allowed_origin
 
         
@@ -83,7 +88,7 @@ def generate_data():
     initReviews()
     initJobs()
     initJobsUsers()
-
+    initApplications()
 
 # Register the custom command group with the Flask application
 app.cli.add_command(custom_cli)

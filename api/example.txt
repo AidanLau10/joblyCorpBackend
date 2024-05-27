@@ -212,7 +212,7 @@ if __name__ == '__main__':
             
             
             
-    # building RESTapi endpoint
+    # adds endpoints
     api.add_resource(_CRUD, '/')
     api.add_resource(_updateJob, '/updatejob')
     

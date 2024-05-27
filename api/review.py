@@ -62,5 +62,5 @@ class ReviewAPI:
                 json_ready = [review.read() for review in reviews]  # prepare output in json
                 return jsonify(json_ready) # jsonify creates Flask response object, more specific to APIs than json.dump 
             
-    # building RESTapi endpoint
+    # adds endpoints
     api.add_resource(_CRUD, '/')
