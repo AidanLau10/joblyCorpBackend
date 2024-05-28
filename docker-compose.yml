@@ -1,7 +1,7 @@
 version: '3'
 services:
         web:
-                image: cpt_v1
+                image: joblyBackendImage
                 build: .
                 ports:
                         - "8064:8064"

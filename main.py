@@ -28,7 +28,9 @@ from api.review import review_api
 # setup App pages
 from projects.projects import app_projects # Blueprint directory import projects definition
 
-# Initialize the SQLAlchemy object to work with the Flask app instance
+# Initialize the S
+# 
+# QLAlchemy object to work with the Flask app instance
 db.init_app(app)
 
 # register URIs
@@ -38,7 +40,7 @@ app.register_blueprint(job_api)
 app.register_blueprint(jobuser_api)
 app.register_blueprint(app_projects) # register app pages
 app.register_blueprint(review_api)
-app.register_blueprint(survey_api)
+
 
 '''
 with app.app_context():

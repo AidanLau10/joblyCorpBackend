@@ -263,22 +263,17 @@ class JobAPI:
             # Sort applications by years of experience in descending order
             bubble_sort_by_experience(applications)
 
-            # Extract unique user IDs from the sorted applications
-            users_id = set([application.userid for application in applications])
-            
-            # Retrieve users from the database
-            users = [User.query.filter_by(id=user_id).first() for user_id in users_id]
-
-            # Prepare the user-application list
+            # Prepare the user-application list directly from sorted applications
             user_application_list = []
-            for user in users:
-                application = Application.query.filter_by(jobid=job_id, userid=user.id).first()
+            for application in applications:
+                user = User.query.filter_by(id=application.userid).first()
                 user_application_list.append({
                     'user': user.read(),
                     'application': application.read()
                 })
 
             return jsonify(user_application_list)
+
 
             
             
